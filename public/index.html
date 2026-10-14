@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>Student Project Tracker</title>
+
+<style>
+    /* ===== Global Styles ===== */
+
+    * {
+        box-sizing: border-box;
+    }
+
+    :root {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont,
+            "Segoe UI", sans-serif;
+
+        color: #1e293b;
+        background-color: #f3f6fb;
+
+        --primary: #1d4ed8;
+        --primary-hover: #1e40af;
+        --text: #1e293b;
+        --muted: #475569;
+        --border: #dbe3ef;
+        --surface: #ffffff;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        padding: 24px;
+
+        color: var(--text);
+        background-color: #f3f6fb;
+
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+    button,
+    input,
+    select {
+        font: inherit;
+    }
+
+    /* ===== Header ===== */
+
+    header {
+        max-width: 900px;
+        margin: 0 auto 30px;
+        text-align: center;
+    }
+
+    header h1 {
+        margin: 0 0 10px;
+        color: #173b70;
+
+        font-size: clamp(1.8rem, 4vw, 2.5rem);
+        line-height: 1.25;
+        letter-spacing: -0.7px;
+    }
+
+    header p {
+        margin: 0;
+        color: var(--muted);
+    }
+
+    /* ===== Main Content ===== */
+
+    main {
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    section {
+        margin-bottom: 24px;
+        padding: 26px;
+
+        background-color: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
+
+    section h2 {
+        margin: 0 0 20px;
+        color: #173b70;
+        font-size: 1.35rem;
+        line-height: 1.4;
+    }
+
+    /* ===== Form ===== */
+
+    #project-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    #project-form > div:not(.form-actions) {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    label {
+        display: block;
+        color: #27364b;
+        font-size: 0.95rem;
+        font-weight: 650;
+    }
+
+    input,
+    select {
+        width: 100%;
+        min-height: 46px;
+        padding: 10px 13px;
+
+        color: var(--text);
+        background-color: #ffffff;
+
+        border: 1px solid #aebdce;
+        border-radius: 8px;
+    }
+
+    input::placeholder {
+        color: #64748b;
+    }
+
+    input:hover,
+    select:hover {
+        border-color: #64748b;
+    }
+
+    /* ===== Keyboard Focus ===== */
+
+    input:focus-visible,
+    select:focus-visible,
+    button:focus-visible {
+        outline: 3px solid #2563eb;
+        outline-offset: 3px;
+    }
+
+    /* ===== Buttons ===== */
+
+    .form-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+    }
+
+    button {
+        min-height: 44px;
+        padding: 10px 18px;
+
+        color: #ffffff;
+        background-color: var(--primary);
+
+        border: 1px solid transparent;
+        border-radius: 8px;
+
+        font-weight: 650;
+        cursor: pointer;
+
+        transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+        background-color: var(--primary-hover);
+    }
+
+    button:active {
+        background-color: #1e3a8a;
+    }
+
+    #cancel-button {
+        color: #334155;
+        background-color: #e2e8f0;
+        border-color: #cbd5e1;
+    }
+
+    #cancel-button:hover {
+        background-color: #cbd5e1;
+    }
+
+    button[hidden] {
+        display: none;
+    }
+
+    /* ===== Status Message ===== */
+
+    #message {
+        margin: 16px 0 0;
+        color: #166534;
+        font-size: 0.92rem;
+        font-weight: 500;
+    }
+
+    #message:empty {
+        display: none;
+    }
+
+    /* ===== Project List ===== */
+
+    #empty-state {
+        margin: 0;
+        padding: 22px;
+
+        color: var(--muted);
+        background-color: #f8fafc;
+
+        text-align: center;
+
+        border: 1px dashed #b8c6d8;
+        border-radius: 10px;
+    }
+
+    #project-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        margin: 0;
+        padding: 0;
+
+        list-style: none;
+    }
+
+    #project-list li {
+        padding: 15px;
+        overflow-wrap: anywhere;
+
+        background-color: #f8fafc;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+    }
+
+    /* ===== Responsive Design ===== */
+
+    @media (max-width: 560px) {
+        body {
+            padding: 16px;
+        }
+
+        header {
+            margin-bottom: 22px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+        }
+
+        section {
+            padding: 18px;
+            margin-bottom: 18px;
+            border-radius: 11px;
+        }
+
+        section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+        }
+
+        #project-form {
+            gap: 18px;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .form-actions button {
+            width: 100%;
+        }
+    }
+</style>
+
+<script src="script.js" defer></script>
+```
+
+</head>
+
+<body>
+
+```
+<header>
+    <h1>Student Project Tracker</h1>
+    <p>Track our electronics project ideas.</p>
+</header>
+
+<main>
+
+    <section aria-labelledby="form-title">
+        <h2 id="form-title">Add a Project</h2>
+
+        <form id="project-form">
+
+            <div>
+                <label for="name">Project Name</label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Enter your project name"
+                    required
+                    maxlength="80"
+                >
+            </div>
+
+            <div>
+                <label for="status">Project Status</label>
+                <select id="status" name="status">
+                    <option value="Planned">Planned</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button id="save-button" type="submit">
+                    Add Project
+                </button>
+
+                <button id="cancel-button" type="button" hidden>
+                    Cancel
+                </button>
+            </div>
+
+        </form>
+
+        <p id="message" role="status" aria-live="polite"></p>
+    </section>
+
+    <section aria-labelledby="list-title">
+        <h2 id="list-title">Project List</h2>
+
+        <p id="empty-state">No projects added yet.</p>
+
+        <ul id="project-list"></ul>
+    </section>
+
+</main>
+```
+
+</body>
+</html>
