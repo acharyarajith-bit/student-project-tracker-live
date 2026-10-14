@@ -3,105 +3,149 @@ import express from 'express';
 import { db } from './database.js';
 
 export function createApp() {
-    const app = express();
+  const app = express();
 
-    app.use(express.json());
-    app.use(express.static('public'));
+  app.use(express.json());
+  app.use(express.static('public'));
 
-    const validStatuses = ['Planned', 'In Progress', 'Completed'];
+  // 1. Health check
+  app.get('/api/health', (req, res) => {
+    res.status(200).json({
+      success: true,
+      message: 'API is running'
+    });
+  });
 
-    function validateProject(name, status) {
-        return (
-            typeof name === 'string' &&
-            name.trim().length >= 1 &&
-            name.trim().length <= 80 &&
-            validStatuses.includes(status)
-        );
+  // 2. Get all projects
+  app.get('/api/projects', async (req, res) => {
+    try {
+      const projects = await db.list();
+      res.status(200).json(projects);
+    } catch (error) {
+      console.error('Get projects error:', error);
+      res.status(500).json({
+        error: 'Could not load projects'
+      });
     }
+  });
 
-    // GET all projects
-    app.get('/api/projects', async (req, res) => {
-        try {
-            res.status(200).json(await db.list());
-        } catch (error) {
-            console.error('Error fetching projects:', error);
-            res.status(500).json({ error: 'Failed to fetch projects' });
-        }
-    });
+  // 3. Add a project
+  app.post('/api/projects', async (req, res) => {
+    try {
+      const { name, status } = req.body ?? {};
 
-    // CREATE a project
-    app.post('/api/projects', async (req, res) => {
-        try {
-            const { name, status } = req.body ?? {};
+      if (typeof name !== 'string' || !name.trim()) {
+        return res.status(400).json({
+          error: 'Project name is required'
+        });
+      }
 
-            if (!validateProject(name, status)) {
-                return res.status(400).json({
-                    error: 'Valid project name and status are required.'
-                });
-            }
+      const validStatuses = [
+        'Planned',
+        'In Progress',
+        'Completed'
+      ];
 
-            const project = await db.create({
-                name: name.trim(),
-                status
-            });
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({
+          error: 'Invalid project status'
+        });
+      }
 
-            return res.status(201).json(project);
-        } catch (error) {
-            console.error('Error saving project:', error);
-            return res.status(500).json({ error: 'Failed to save project' });
-        }
-    });
+      const project = await db.create({
+        name: name.trim(),
+        status
+      });
 
-    // UPDATE a project
-    app.put('/api/projects/:id', async (req, res) => {
-        try {
-            const id = Number(req.params.id);
-            const { name, status } = req.body ?? {};
+      res.status(201).json(project);
+    } catch (error) {
+      console.error('Add project error:', error);
+      res.status(500).json({
+        error: 'Could not add project'
+      });
+    }
+  });
 
-            if (!Number.isSafeInteger(id) || id < 1 ||
-                !validateProject(name, status)) {
-                return res.status(400).json({
-                    error: 'Valid project ID, name and status are required.'
-                });
-            }
+  // 4. Update a project
+  app.put('/api/projects/:id', async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const { name, status } = req.body ?? {};
 
-            const project = await db.update(id, {
-                name: name.trim(),
-                status
-            });
+      if (!Number.isSafeInteger(id) || id < 1) {
+        return res.status(400).json({
+          error: 'Invalid project ID'
+        });
+      }
 
-            if (!project) {
-                return res.status(404).json({ error: 'Project not found' });
-            }
+      if (typeof name !== 'string' || !name.trim()) {
+        return res.status(400).json({
+          error: 'Project name is required'
+        });
+      }
 
-            return res.status(200).json(project);
-        } catch (error) {
-            console.error('Error updating project:', error);
-            return res.status(500).json({ error: 'Failed to update project' });
-        }
-    });
+      const validStatuses = [
+        'Planned',
+        'In Progress',
+        'Completed'
+      ];
 
-    // DELETE a project
-    app.delete('/api/projects/:id', async (req, res) => {
-        try {
-            const id = Number(req.params.id);
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({
+          error: 'Invalid project status'
+        });
+      }
 
-            if (!Number.isSafeInteger(id) || id < 1) {
-                return res.status(400).json({ error: 'Invalid project ID' });
-            }
+      const project = await db.update(id, {
+        name: name.trim(),
+        status
+      });
 
-            const deleted = await db.remove(id);
+      if (!project) {
+        return res.status(404).json({
+          error: 'Project not found'
+        });
+      }
 
-            if (!deleted) {
-                return res.status(404).json({ error: 'Project not found' });
-            }
+      res.status(200).json(project);
+    } catch (error) {
+      console.error('Update project error:', error);
+      res.status(500).json({
+        error: 'Could not update project'
+      });
+    }
+  });
 
-            return res.status(200).json({ success: true });
-        } catch (error) {
-            console.error('Error deleting project:', error);
-            return res.status(500).json({ error: 'Failed to delete project' });
-        }
-    });
+  // 5. Delete a project
+  app.delete('/api/projects/:id', async (req, res) => {
+    try {
+      const id = Number(req.params.id);
 
-    return app;
+      if (!Number.isSafeInteger(id) || id < 1) {
+        return res.status(400).json({
+          error: 'Invalid project ID'
+        });
+      }
+
+      const deleted = await db.remove(id);
+
+      if (!deleted) {
+        return res.status(404).json({
+          error: 'Project not found'
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Project deleted successfully'
+      });
+    } catch (error) {
+      console.error('Delete project error:', error);
+      res.status(500).json({
+        error: 'Could not delete project'
+      });
+    }
+  });
+
+  return app;
 }

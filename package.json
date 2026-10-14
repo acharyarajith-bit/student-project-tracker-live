@@ -1,7 +1,5 @@
 {
-  "name": "student-project-tracker",
-  "version": "1.0.0",
-  "private": true,
+  "name": "student-project-tracker-live",
   "type": "module",
   "engines": {
     "node": "22.x"
